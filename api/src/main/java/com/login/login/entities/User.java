@@ -1,23 +1,20 @@
 package com.login.login.entities;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
-@DynamicInsert
-@DynamicUpdate
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 @Table(name = "tb_user")
-public class User implements UserDetails {
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,33 +32,13 @@ public class User implements UserDetails {
     @Setter
     private String password;
 
-    @Setter
-    private String authorities;
+    @ManyToMany(fetch = FetchType.EAGER)
+    private List<Role> roles = new ArrayList<>();
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Arrays.stream(authorities.split(","))
-                .map(SimpleGrantedAuthority::new)
-                .toList();
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
+    public User(String name, String username, String mail, String password) {
+        this.name = name;
+        this.username = username;
+        this.mail = mail;
+        this.password = password;
     }
 }
