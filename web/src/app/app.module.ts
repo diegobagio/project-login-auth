@@ -9,7 +9,10 @@ import {ButtonModule} from 'primeng/button';
 import {InputTextModule} from 'primeng/inputtext';
 import { FormsModule } from '@angular/forms';
 import { HomeComponent } from './components/home/home.component';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { AuthService } from './shared/auth/auth.service';
+import { TokenInterceptor } from './shared/auth/token.interceptor';
 
 
 @NgModule({
@@ -27,7 +30,15 @@ import { HttpClientModule } from '@angular/common/http';
     ButtonModule,
     InputTextModule
   ],
-  providers: [],
+  providers: [MessageService,
+    ConfirmationService,
+    AuthService,
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: TokenInterceptor,
+      multi: true
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

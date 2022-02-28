@@ -18,7 +18,7 @@ export class AuthService {
   getToken() {
     const stringToken = localStorage.getItem('access_token');
     if (stringToken) {
-      const token = JSON.parse(stringToken).access_token;
+      const token = JSON.parse(stringToken);
       return token;
     }
     return null;
@@ -42,6 +42,6 @@ export class AuthService {
     const headers = {
       'Content-Type': 'application/json',
     };
-    return this.http.post(this.tokenURL, user, { headers });
+    return this.http.post(this.tokenURL, user, { headers,  responseType: 'text' });
   }
 }

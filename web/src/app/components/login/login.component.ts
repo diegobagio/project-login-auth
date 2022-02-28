@@ -15,24 +15,24 @@ export class LoginComponent {
   }
 
   login() {
-    this.authService
+    try {
+      this.authService
       .login(this.entity.username, this.entity.password)
-      .subscribe(
-        (response) => {
-          const access_token = JSON.stringify(response);
-          localStorage.setItem('access_toke', access_token);
-
-          if (this.entity.remenber) {
-            localStorage.setItem('username', this.entity.username);
-          } else {
-            localStorage.removeItem('username');
-          }
-
-          this.router.navigate(['']);
-        },
-        (errorResponse) => {
-          // this.messageService.add({ severity: 'error', detail: 'Usuário e/ou senha incorreto(s).' });
+      .subscribe((response) => {
+        const access_token = JSON.stringify(response);
+        localStorage.setItem('access_token', access_token);
+        if (this.entity.remenber) {
+          localStorage.setItem('username', this.entity.username);
+        } else {
+          localStorage.removeItem('username');
         }
-      );
+
+        this.router.navigate(['']);
+      });
+    } catch (error) {
+      console.log(error);
+
+    }
+
   }
 }
