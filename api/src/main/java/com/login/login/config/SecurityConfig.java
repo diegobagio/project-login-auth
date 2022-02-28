@@ -1,58 +1,49 @@
 package com.login.login.config;
 
-import com.login.login.services.UserService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import org.apache.catalina.filters.CorsFilter;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.core.Ordered;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
+import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.factory.PasswordEncoderFactories;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
-import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpMethod.POST;
-import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
+import java.security.interfaces.RSAPublicKey;
+import java.util.List;
 
-@EnableWebSecurity
-@Log4j2
-//@EnableGlobalMethodSecurity(prePostEnabled = true)
-@RequiredArgsConstructor
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+@Configuration
+public class SecurityConfig {
 
-    private final UserDetailsService userDetailsService;
-    private final BCryptPasswordEncoder passwordEncoder;
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder);
-    }
+    @Value("classpath:rsapubkey.pem")
+    private RSAPublicKey publicKey;
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(authenticationManagerBean());
-        filter.setFilterProcessesUrl("/api/login");
-        http.csrf().disable();
-        http.authorizeRequests().antMatchers("api/login/**").permitAll();
-        http.authorizeRequests().antMatchers(GET,"/user/**").hasAnyAuthority("USER");
-        http.authorizeRequests().antMatchers(POST,"/user/user/**").hasAnyAuthority("ADMIN");
-        http.authorizeRequests().anyRequest().authenticated();
-        http.sessionManagement().sessionCreationPolicy(STATELESS);
-        http.addFilter(filter);
-        http.addFilterBefore(new JwtValidationFilter(), UsernamePasswordAuthenticationFilter.class);
+    @Bean
+    public SecurityFilterChain app(HttpSecurity http) throws Exception {
+        http.authorizeRequests((request) -> request
+                .antMatchers("/token").permitAll()
+                .anyRequest().authenticated()
+        )
+                .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
+                .csrf(CsrfConfigurer::disable);
+        return http.build();
     }
 
     @Bean
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
+    public JwtDecoder jwtDecoder() {
+        return NimbusJwtDecoder.withPublicKey(this.publicKey).build();
     }
-
-
 }
