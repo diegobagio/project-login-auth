@@ -40,7 +40,6 @@ public class TokenController {
     @PostMapping
     public ResponseEntity<String> generateToken(@RequestBody User user) {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(16);
-//        String passworEnconded = encoder.encode(user.getPassword());
         UserDetails userDetails = this.userDetailsService.loadUserByUsername(user.getUsername());
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

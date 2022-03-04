@@ -1,3 +1,4 @@
+import { MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
 import { AuthService } from './../../shared/auth/auth.service';
 import { Component } from '@angular/core';
@@ -9,30 +10,38 @@ import { Component } from '@angular/core';
 })
 export class LoginComponent {
   entity: any;
+  loading = false;
 
-  constructor(private authService: AuthService, private router: Router) {
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private messageService: MessageService
+  ) {
     this.entity = {};
   }
 
   login() {
-    try {
-      this.authService
+    this.loading = true
+    this.authService
       .login(this.entity.username, this.entity.password)
-      .subscribe((response) => {
-        const access_token = JSON.stringify(response);
-        localStorage.setItem('access_token', access_token);
-        if (this.entity.remenber) {
-          localStorage.setItem('username', this.entity.username);
-        } else {
-          localStorage.removeItem('username');
-        }
+      .subscribe({
+        next: (response) => {
+          const access_token = JSON.stringify(response);
+          localStorage.setItem('access_token', access_token);
+          if (this.entity.remenber) {
+            localStorage.setItem('username', this.entity.username);
+          } else {
+            localStorage.removeItem('username');
+          }
 
-        this.router.navigate(['']);
+          this.router.navigate(['']);
+        },
+        error: (error) => this.messageService.add({severity: 'error', detail: 'Usuario e/ou senha informados incorretamente!'}),
       });
-    } catch (error) {
-      console.log(error);
+      this.loading = false
+  }
 
-    }
+  cadastrarUsuario() {
 
   }
 }
