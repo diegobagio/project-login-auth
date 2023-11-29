@@ -24,9 +24,10 @@ public class UserController {
         return authentication;
     }
 
-
     @GetMapping
-    public ResponseEntity findAll() { return ok(userService.findAll()); }
+    public ResponseEntity findAll() {
+        return ok(userService.findAll());
+    }
 
     @GetMapping(path = "/id")
     public ResponseEntity findByUsername(String username) {
